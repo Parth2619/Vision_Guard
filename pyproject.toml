@@ -1,0 +1,52 @@
+[project]
+name = "visionguard-medical"
+version = "0.1.0"
+description = "Agentic AI auditor for AI-generated chest CT reports (research prototype)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "VisionGuard Medical" }]
+
+# Phase 1 keeps dependencies minimal. Heavy ML libs (torch, langgraph, etc.) are
+# added in later phases, so Phase 1 can be installed and tested on any machine.
+dependencies = [
+    "fastapi>=0.115,<1.0",
+    "uvicorn[standard]>=0.30,<1.0",
+    "pydantic>=2.7,<3.0",
+    "pydantic-settings>=2.3,<3.0",
+    "streamlit>=1.37,<2.0",
+    "python-dotenv>=1.0,<2.0",
+    "httpx>=0.27,<1.0",
+    "langgraph>=0.2,<0.6",
+    "python-multipart>=0.0.9,<1.0",
+    "pillow>=10.0,<13.0",
+    "torch>=2.2,<3.0",
+    "torchxrayvision>=1.2,<2.0",
+    "transformers>=4.44,<5.0",
+    "defusedxml>=0.7,<1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0,<9.0",
+    "httpx>=0.27,<1.0",
+]
+# Added incrementally in later phases; listed here only so intent is explicit.
+ml = [
+    "scikit-learn>=1.4,<2.0",
+    "numpy>=1.26,<3.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["agents*", "graph*", "medical*", "models*", "datasets*", "baselines*", "api*", "frontend*", "configs*", "scripts*"]
+
+[tool.pip]
+extra-index-url = "https://download.pytorch.org/whl/cpu"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

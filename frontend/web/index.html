@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VisionGuard Medical — Audit workspace</title>
+<meta name="description" content="Chest X-ray report auditor. Research prototype. Not clinically validated." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<header class="appbar">
+  <div class="brand">
+    <span class="brand-name">VisionGuard</span>
+    <span class="brand-sub">Medical</span>
+  </div>
+  <nav class="nav" role="tablist">
+    <button class="nav-item is-active" data-view="audit" role="tab" aria-selected="true">Audit</button>
+    <button class="nav-item" data-view="review" role="tab" aria-selected="false">Review</button>
+    <button class="nav-item" data-view="about" role="tab" aria-selected="false">About</button>
+  </nav>
+  <div class="disclaimer" role="note" hidden></div>
+</header>
+
+<main class="viewport">
+
+  <!-- Audit view ========================================= -->
+  <section class="view" data-view="audit" aria-labelledby="audit-head">
+    <h1 id="audit-head" class="sr-only">Audit workspace</h1>
+
+    <aside class="pane pane-input" aria-label="Inputs">
+      <form id="audit-form" autocomplete="off" novalidate>
+
+        <fieldset class="field field-mode">
+          <legend>Mode</legend>
+          <label class="mode"><input type="radio" name="mode" value="normal" checked /><span>Normal</span><em>paste a report</em></label>
+          <label class="mode"><input type="radio" name="mode" value="vlm_from_image" /><span>VLM</span><em>generate from image</em></label>
+        </fieldset>
+
+        <div class="field">
+          <label class="field-label" for="report_text">Report text</label>
+          <textarea id="report_text" name="report_text" rows="10" placeholder="FINDINGS: …&#10;IMPRESSION: …"></textarea>
+          <div class="field-note" id="report-hint">Required in Normal mode.</div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="image">Chest X-ray</label>
+          <div class="drop" id="drop">
+            <input type="file" id="image" name="image" accept="image/png,image/jpeg" />
+            <div class="drop-cue"><span>Choose PNG or JPEG</span><em>up to 10 MB</em></div>
+            <div class="drop-filename" id="drop-filename"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <button type="submit" class="primary" id="run">Run audit</button>
+          <button type="reset" class="ghost" id="reset">Reset</button>
+        </div>
+      </form>
+    </aside>
+
+    <section class="pane pane-view" aria-label="Radiograph viewer">
+      <div class="viewer" id="viewer" aria-live="polite">
+        <div class="viewer-empty">
+          <svg class="pulse-ekg" viewBox="0 0 600 120" aria-hidden="true" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="ekg-fade" x1="0" x2="1">
+                <stop offset="0"   stop-color="#58A569" stop-opacity="0"/>
+                <stop offset="0.5" stop-color="#58A569" stop-opacity="0.9"/>
+                <stop offset="1"   stop-color="#58A569" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path class="pulse-track" d="M0 60 L140 60 L160 60 L170 40 L180 90 L195 20 L210 100 L225 60 L380 60 L400 60 L410 50 L420 70 L430 60 L600 60" fill="none" stroke="#2A2D30" stroke-width="1"/>
+            <path class="pulse-trace" d="M0 60 L140 60 L160 60 L170 40 L180 90 L195 20 L210 100 L225 60 L380 60 L400 60 L410 50 L420 70 L430 60 L600 60" fill="none" stroke="url(#ekg-fade)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="empty-text">
+            <h2>Awaiting study</h2>
+            <p>Upload a chest radiograph to begin. The audit workspace will populate with claim-level verdicts, confidence calibration, and bounding-box evidence.</p>
+          </div>
+          <div class="empty-meta">
+            <div><span>Modality</span><em>CR · chest radiograph</em></div>
+            <div><span>Pipeline</span><em>LangGraph · 7 agents</em></div>
+            <div><span>Classifier</span><em>DenseNet-121 · 18 pathologies</em></div>
+            <div><span>Detector</span><em>Grounding-DINO · zero-shot</em></div>
+          </div>
+        </div>
+      </div>
+      <footer class="viewer-foot" id="viewer-foot" hidden>
+        <span class="foot-group">
+          <span class="dot" data-status="supported"></span>
+          <span id="overall-status">—</span>
+        </span>
+        <span class="sep"></span>
+        <span class="foot-group">
+          <span class="foot-k">Audit</span>
+          <span class="audit-id" id="audit-id"></span>
+        </span>
+        <span class="sep"></span>
+        <span class="foot-group">
+          <span class="foot-k">Review</span>
+          <span id="review-flag">—</span>
+        </span>
+        <span class="foot-spacer"></span>
+        <button class="link" id="export-json" type="button">Export JSON ↓</button>
+      </footer>
+    </section>
+
+    <aside class="pane pane-verdicts" aria-label="Verdicts">
+      <div class="verdict-head">
+        <div class="agg">
+          <div class="agg-row"><span class="agg-k">Supported</span><span class="agg-v" id="agg-supported">—</span><span class="dot" data-status="supported"></span></div>
+          <div class="agg-row"><span class="agg-k">Contradicted</span><span class="agg-v" id="agg-contradicted">—</span><span class="dot" data-status="contradicted"></span></div>
+          <div class="agg-row"><span class="agg-k">Indeterminate</span><span class="agg-v" id="agg-indeterminate">—</span><span class="dot" data-status="indeterminate"></span></div>
+        </div>
+        <div class="hr" aria-hidden="true"></div>
+      </div>
+      <ol class="verdicts" id="verdicts" aria-live="polite"></ol>
+      <div class="verdicts-empty" id="verdicts-empty">
+        Verdicts appear after the audit runs.
+      </div>
+    </aside>
+  </section>
+
+  <!-- Trace strip across bottom of audit view -->
+  <section class="trace" id="trace-wrap" hidden aria-label="Agent trace">
+    <div class="trace-head">
+      <span>Agent trace</span>
+      <span class="trace-method" id="trace-method"></span>
+    </div>
+    <ol class="trace-list" id="trace-list"></ol>
+  </section>
+
+  <!-- Review view ======================================== -->
+  <section class="view" data-view="review" hidden aria-labelledby="review-head">
+    <h1 id="review-head" class="pane-title">Expert review queue</h1>
+    <p class="pane-blurb">Flagged claims from the last audit. Decisions persist to a local SQLite table and feed the eval harness.</p>
+    <div class="review-list" id="review-list">
+      <div class="verdicts-empty">Run an audit first; flagged claims appear here.</div>
+    </div>
+  </section>
+
+  <!-- About view ========================================= -->
+  <section class="view" data-view="about" hidden aria-labelledby="about-head">
+    <h1 id="about-head" class="pane-title">What this is</h1>
+    <div class="about-grid">
+      <section>
+        <h2>Purpose</h2>
+        <p>VisionGuard audits AI-generated chest X-ray reports and flags claims that the image does not visibly support. Each claim resolves to supported, contradicted, or indeterminate, with explicit evidence provenance.</p>
+      </section>
+      <section>
+        <h2>Pipeline</h2>
+        <p>A LangGraph state machine runs validate → extract → evidence (torchxrayvision classifier + Grounding-DINO detector) → verify → calibrate (an MLP trained on 6,514 real IU report claims) → critic → risk gate → human review.</p>
+      </section>
+      <section>
+        <h2>Models</h2>
+        <p>Three pretrained models used as-is (torchxrayvision DenseNet-121, Grounding-DINO tiny, Qwen2-VL-2B via precomputed Kaggle outputs) and one calibration network trained from scratch on real IU Chest X-Ray reports.</p>
+      </section>
+      <section>
+        <h2>Measured result</h2>
+        <p><span class="num">78.6%</span> agreement with the author on 42 hand-labeled claim/image pairs. F1 for supported 0.87; the system over-claims on ambiguous images 9/11 times — the documented failure mode.</p>
+      </section>
+      <section>
+        <h2>Honest limitations</h2>
+        <p>Rule-based claim extractor (not an LLM). No CLIP similarity. Count and spatial verifiers extract typed data but do not run dedicated verifiers. Labels came from a non-expert annotator. 42 cases is small.</p>
+      </section>
+      <section>
+        <h2>Not for diagnosis</h2>
+        <p>Research prototype. No clinical validation, no regulatory status, no patient use. Every audit response carries this disclaimer in its JSON.</p>
+      </section>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module" src="/static/app.js"></script>
+</body>
+</html>

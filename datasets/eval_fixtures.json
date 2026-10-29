@@ -1,0 +1,31 @@
+[
+  {
+    "name": "synthetic_demo_builtin",
+    "mode": "synthetic_demo",
+    "report_text": "",
+    "expected": {
+      "pleural effusion": "supported",
+      "cardiomegaly": "contradicted",
+      "pneumothorax": "supported",
+      "atelectasis": "indeterminate",
+      "fracture": "indeterminate"
+    }
+  },
+  {
+    "name": "clean_text_only",
+    "mode": "normal",
+    "report_text": "FINDINGS: No pleural effusion. No pneumothorax. IMPRESSION: Normal study.",
+    "expected": {
+      "pleural effusion": "indeterminate",
+      "pneumothorax": "indeterminate"
+    }
+  },
+  {
+    "name": "hedged_text_only",
+    "mode": "normal",
+    "report_text": "FINDINGS: Possible atelectasis in the left lung.",
+    "expected": {
+      "atelectasis": "indeterminate"
+    }
+  }
+]

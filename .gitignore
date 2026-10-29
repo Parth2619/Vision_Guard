@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.*
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Notebooks
+.ipynb_checkpoints/
+
+# ===== Project-specific: NEVER commit =====
+# Datasets (RadGenome-ChestCT, CT scans, DICOM, NIfTI, IU X-Ray)
+datasets/**/*
+!datasets/__init__.py
+!datasets/README.md
+!datasets/manifest.py
+!datasets/radgenome_schema.py
+!datasets/iu_xray.py
+!datasets/eval_fixtures.json
+*.dcm
+*.nii
+*.nii.gz
+*.mha
+*.nrrd
+
+# Patient reports / PHI
+*.phi
+reports/
+phi/
+
+# Phase 8 — expert review persistence (local only)
+reviews.db
+reviews.db-journal
+
+# Model checkpoints / weights
+artifacts/**/*
+!artifacts/.gitkeep
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.bin
+
+# Streamlit / FastAPI runtime
+.streamlit/secrets.toml
