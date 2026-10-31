@@ -80,5 +80,3 @@ pytest
 - Missing evidence → `indeterminate`, never `contradicted`.
 - Never commit datasets, PHI, checkpoints, or secrets.
 - No external API calls with medical data without explicit opt-in.
-
-See [CLAUDE.md](CLAUDE.md) for architecture and contributor rules.
