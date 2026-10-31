@@ -2,8 +2,6 @@
 
 Agentic AI auditor for AI-generated chest CT reports. Flags unsupported or hallucinated claims against the source scan.
 
-> ⚠️ **Research prototype. Not clinically validated. Not for diagnostic use.**
-
 ## Status
 
 **Phase 6 — Image + bounding-box verification.** Typed claim extraction (Object / Attribute / Count / Spatial), LangGraph workflow with bounded recheck, FastAPI `/audit` multipart endpoint, Streamlit workspace with image upload and bbox overlay. Visual evidence from a pretrained chest-X-ray classifier (`torchxrayvision`, ~250 MB on first use) **and** zero-shot Grounding-DINO detector (~700 MB on first use). Weights download lazily into the local HF/torch cache. Synthetic deterministic offline demo still works without any downloads.
